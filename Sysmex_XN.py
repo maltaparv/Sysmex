@@ -1,4 +1,4 @@
-# tcpServ 2020-09-21
+# Sysmex 2020-11-09 (from tcpServ 2020-09-21)
 import socket
 import datetime
 
