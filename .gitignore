@@ -1,0 +1,7 @@
+# 2020-11-11
+.idea/
+
+# my log files
+Log*.txt
+.gitignore_Sample_00
+Log2020-11-09.txt
