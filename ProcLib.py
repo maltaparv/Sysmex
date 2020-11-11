@@ -3,6 +3,7 @@ import os.path
 import datetime
 from ClassLib import const
 
+
 # TODO_done 10-12 all constants must be in separate class (2020-10-03)
 def write_log(message, log_file='Log') -> None:
     """ Log all data and current date-time stamp to special file
@@ -18,7 +19,7 @@ def write_log(message, log_file='Log') -> None:
     # const.path_log = r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\\"  # - from ini-file
     filename = f'{const.path_log}\\{log_file}{now.strftime("%Y-%m-%d")}.txt'
     print('===', filename)
-    # r'D:\TempData\Log.txt' r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\LogSysmex.txt" "LogSysmex.txt"
+    # r'D:\TempData\Log.tx  t' r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\LogSysmex.txt" "LogSysmex.txt"
     with open(filename, 'a') as f:
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         prefix_message = f'{time_stamp} {message}'
@@ -72,8 +73,13 @@ def read_ini(ini_file):
 
     const.host = config['Connection']['host']
     const.port = int(config['Connection']['port'])
-    const.sql_run = config.get('Connection', 'sql_run1')
-
+    # const.sql_run = config.get('Connection', 'sql_run1')
+    const.server = config.get('Connection', 'server')
+    const.database = config.get('Connection', 'database')
+    const.user_name = config.get('Connection', 'user_name')
+    const.password = config.get('Connection', 'pwd')
+    const.sql_run = ''.join(['DRIVER={ODBC Driver 17 for SQL Server};SERVER=', const.server,
+                             ';DATABASE=', const.database, ';UID=', const.user_name, ';PWD=', const.password])
     const.path_log = config.get('LogFiles', 'path_log')
     const.path_errlog = config.get('LogFiles', 'path_errlog')
     const.mode = config.get('Modes', 'mode')

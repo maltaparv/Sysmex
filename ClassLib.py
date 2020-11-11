@@ -38,8 +38,12 @@ class CONST:
         self.analyser_name = 'analyser_name01'  # сюда читаем из ini-файла
         self.analyser_location = 'ГБСМП РнД'
         self.host = ''  # '127.0.0.1' or empty string - to accept connections on all available IPv4 interfaces.
-        self.port = 50987
+        self.port = 50256
         self.sql_run = 'Asu pass=<***>'
+        self.server = 'Asu-911'
+        self.database = 'LabAutoResult'
+        self.user_name = 'sa'
+        self.password = '***'
         self.path_log = '.'  # директория запуска
         self.path_errlog = '.'  # директория запуска
         self.mode = 'test_mode'
