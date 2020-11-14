@@ -11,6 +11,7 @@ class RECORD:
         self.list_research = []
         self.an = []
         self.dict_rec = {}
+        self.str_insert = ''
 
     fio = 'Тестовый О.Н.'
     history_number = 99998  # for testing - is it coming to MS SQL?
@@ -44,8 +45,8 @@ class CONST:
         self.database = 'LabAutoResult'
         self.user_name = 'sa'
         self.password = '***'
-        self.path_log = '.'  # директория запуска
-        self.path_errlog = '.'  # директория запуска
+        self.path_log = '.'  # путь к логам
+        self.path_errlog = '.'  # путь к логам ошибок
         self.mode = 'test_mode'
         self.num_run = 123
         self.last_run = 'today:))'

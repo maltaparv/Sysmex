@@ -87,10 +87,22 @@ def create_socket():
 
 
 def transfer():
+    """ Передача полченного от анализатора (всё уже в record.)
+
+    :return: None
+    """
     write_log(f">>> transfer(): номер истории={record.history_number}, ФИО={record.fio}")
+    cnt_max = 22  # (ограничение кол-ва полей в LabAutoResult)
+    str1 = ''  # начало строки INSERT into ... (Analyzer_Id, HistoryNumber, ResultDate,
+    str2 = ''  # хвост  строки INSERT ... values(...{record.history_number}, ...
     for an in record.list_research:
         write_log(f"Получено: {str(an)}")
+        #TODO проверить на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
+        # if key > cnt_max:
+        #     write_log(f'Анализ больше максимального({cnt_max}): ')
 
+    #TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.
+    # примеры: Anemia, Atypical_Lympho?, Iron_Deficiency?, - а надо ли всё это перевести на русский???
     write_log('Данные в словаре:')
     for key in record.dict_rec:
         write_log(f'dict {key}, {record.dict_rec[key]}')
