@@ -12,6 +12,7 @@ class RECORD:
         self.an = []
         self.dict_rec = {}
         self.str_insert = ''
+        self.result_text = ''
 
     fio = 'Тестовый О.Н.'
     history_number = 99998  # for testing - is it coming to MS SQL?

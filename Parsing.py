@@ -61,7 +61,7 @@ def parse_result_record(line):
     record.an = [an_no, an_name, an_res, an_ed, an_flag, an_time]  # current record with one result
     record.list_research.append(record.an)  # Add to patient's list of analysis the current result
     # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an
-    num = int(record_field[1])
+    num = int(record_field[1])  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
     record.dict_rec[f'number{num}'] = num
     record.dict_rec[f'ParamName{num}'] = name_an(num, record_field[2].replace('^', ' ').strip())
     record.dict_rec[f'ParamValue{num}'] = record_field[3]
@@ -84,6 +84,7 @@ def parse_xn350(data):
     """''
     mes = f'Parsing data for Sysmex XN-350... Data:\n{data}'
     write_log(mes)
+    record.result_text = data.decode('cp1251')  # это весь полученный текст для записи в SQL
     # record.__init__()  # при получении данных - "обнулить" всё
 
     dl = data.splitlines()

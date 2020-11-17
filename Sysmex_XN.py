@@ -1,10 +1,10 @@
 # Sysmex 2020-11-09 (from tcpServ 2020-09-21)
 import socket
-import datetime
-
+import pyodbc  # для MS SQL SERVER - рекомендовано Microsoft
 from Parsing import parse_xn350, record
 from ProcLib import write_log, write_errlog, read_ini
 from ClassLib import const
+
 
 # TODO_done: ANALYSER_ID, PORT, PATH_LOG - read from .ini-file and assign correct values. These values are default!
 
@@ -86,6 +86,24 @@ def create_socket():
     return data_received
 
 
+def sql_insert(str_sql: str) -> int:
+    """ Запись в MS SQL одного результата от анализатора
+    :type str_sql: str
+    """
+    try:
+        conn = pyodbc.connect(const.sql_run)
+        cursor = conn.cursor()
+        write_log(str_sql)
+        cursor.execute('set dateformat ymd;')
+        cursor.execute(str_sql)
+        conn.commit()
+    except Exception as e:
+        write_log("ERR Ошибка при записи SQL. " + str(e))
+        write_errlog("ERR Ошибка при записи SQL.", str(e))
+        return -1
+    return 0
+
+
 def transfer():
     """ Передача полченного от анализатора (всё уже в record.)
 
@@ -93,19 +111,37 @@ def transfer():
     """
     write_log(f">>> transfer(): номер истории={record.history_number}, ФИО={record.fio}")
     cnt_max = 22  # (ограничение кол-ва полей в LabAutoResult)
-    str1 = ''  # начало строки INSERT into ... (Analyzer_Id, HistoryNumber, ResultDate,
-    str2 = ''  # хвост  строки INSERT ... values(...{record.history_number}, ...
+    result_text = record.result_text  # 'тест7 Sysmex XN-350 '
+    str_start = 'INSERT INTO [LabAutoResult].[dbo].[AnalyzerResults](Analyzer_Id,HistoryNumber'  # начало строки INSERT
+    str_tail = f')Values({const.analyser_id},{record.history_number}'  # хвост строки INSERT
+    str_parm_names = ''
+    result_date = '2020-12-31 23:59:57'
+    nom = 0  # кол-во параметров (CntParam в SQL)
     for an in record.list_research:
         write_log(f"Получено: {str(an)}")
-        #TODO проверить на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
-        # if key > cnt_max:
-        #     write_log(f'Анализ больше максимального({cnt_max}): ')
+        nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
+        # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
+        if nom > cnt_max:
+            write_log(f'Анализов больше максимального({cnt_max}): ')
+            nom = cnt_max
+            break
 
-    #TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.
+        str_parm_names += ''.join([f', ParamName{nom}, ParamValue{nom}, ParamMsr{nom}, Attention{nom} '])
+        str_tail += ''.join([f", '{an[1]}', '{an[2]}', '{an[3]}', '{an[4]}' "])
+        result_date = an[5]  # '2020-12-31 23:59:59' # дату-время выполнения берём из последнего анализа.
+    str_parm_names += ''.join([', CntParam, ResultDate, ResultText'])
+    str_tail += ''.join([f", {nom}, '{result_date}', '{result_text}'"])
+    # str_tail += ''.join([f", GetDate(), '{result_text}'"])  # для второго варианта  - по времени добавления в SQL.
+
+    str_insert = ''.join([str_start, str_parm_names, str_tail, ')'])
+    return_code_sql = sql_insert(str_insert)
+    print(f'return_code_sql={return_code_sql}.')
+
+    # TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.
     # примеры: Anemia, Atypical_Lympho?, Iron_Deficiency?, - а надо ли всё это перевести на русский???
-    write_log('Данные в словаре:')
-    for key in record.dict_rec:
-        write_log(f'dict {key}, {record.dict_rec[key]}')
+    # write_log('Данные в словаре:')
+    # for key in record.dict_rec:
+    #     write_log(f'dict {key}, {record.dict_rec[key]}')
 
 
 def mainloop() -> None:
@@ -114,7 +150,7 @@ def mainloop() -> None:
     :return: None
     """
     while True:
-        # ToDO проверка текущей даты
+        # ToDO_ проверка текущей даты - не надо, она есть в write_log()
         record.__init__()  # при получении данных - "обнулить" всё
         data_obtained = create_socket()
         write_log(f'>>> After create_socket() - data_obtained:\n{data_obtained}\n--- End of data_obtained.')
@@ -126,11 +162,12 @@ def mainloop() -> None:
         # write_log(f">>> Ready to next connection. Date-time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         write_log(f">>> Ready to next connection.")
 
+
 if __name__ == '__main__':
     # ToDo_done read_ini
     # const = CONST()  # to fill from ini
     # fn_ini = 'sysmex350.ini'
-    fn_ini = 'sysmex550.ini'
+    fn_ini = 'sysmex.ini'
     read_ini(fn_ini)
     write_log(f'Run {const.analyser_name}, analyser_id={const.analyser_id}, ' +
               f'analyser_location={const.analyser_location}, listening IP:{const.host}:{const.port}.')
