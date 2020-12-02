@@ -1,5 +1,6 @@
 # 2020-11-11
 .idea/
+build/
 
 # my log files
 Log*.txt
