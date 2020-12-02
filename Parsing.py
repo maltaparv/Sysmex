@@ -97,7 +97,7 @@ def parse_xn350(data):
                         'Q': 'Inquiry Record',
                         'O': 'Analysis Order Record',
                         'R': 'Analysis Result Record',
-                         'C': 'Comment Record',
+                        'C': 'Comment Record',
                         'M': 'Manufacturer Info Record',
                         'S': 'Scientific Info Record',
                         'L': 'Message Terminator Record'}
