@@ -13,7 +13,7 @@ from PyQt5.QtGui import *
 
 from sample_socket_client_Thread import SocketClientThread, ClientCommand, ClientReply
 
-SERVER_ADDR = 'localhost', 50007
+SERVER_ADDR = 'localhost', 50005
 
 
 class CircleWidget(QWidget):

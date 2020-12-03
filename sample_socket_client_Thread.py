@@ -91,7 +91,7 @@ class SocketClientThread(threading.Thread):
     def _handle_SEND(self, cmd):
         header = struct.pack('<L', len(cmd.data))
         try:
-            self.socket.sendall(header + cmd.data)
+            self.socket.sendall(header + cmd.data.encode('1251'))
             self.reply_q.put(self._success_reply())
         except IOError as e:
             self.reply_q.put(self._error_reply(str(e)))
@@ -100,7 +100,10 @@ class SocketClientThread(threading.Thread):
         try:
             header_data = self._recv_n_bytes(4)
             if len(header_data) == 4:
-                msg_len = struct.unpack('<L', header_data)[0]
+                # d1 = header_data
+                # d2 = struct.unpack('<L', header_data)
+                # d3 = struct.unpack('<L', header_data)[0]
+                msg_len = struct.unpack('<L', header_data.encode())[0]
                 data = self._recv_n_bytes(msg_len)
                 if len(data) == msg_len:
                     self.reply_q.put(self._success_reply(data))
@@ -118,7 +121,7 @@ class SocketClientThread(threading.Thread):
             chunk = self.socket.recv(n - len(data))
             if chunk == '':
                 break
-            data += chunk
+            data += chunk.decode()
         return data
 
     def _error_reply(self, errstr):
@@ -132,16 +135,16 @@ class SocketClientThread(threading.Thread):
 if __name__ == "__main__":
     sct = SocketClientThread()
     sct.start()
-    sct.cmd_q.put(ClientCommand(ClientCommand.CONNECT, ('localhost', 50007)))
+    sct.cmd_q.put(ClientCommand(ClientCommand.CONNECT, ('localhost', 50005)))
     reply = sct.reply_q.get(True)
     print(reply.type, reply.data)
-    sct.cmd_q.put(ClientCommand(ClientCommand.SEND, "hellothere"))
+    sct.cmd_q.put(ClientCommand(ClientCommand.SEND, "1 hellothere"))
     reply = sct.reply_q.get(True)
     print(reply.type, reply.data)
-    sct.cmd_q.put(ClientCommand(ClientCommand.RECEIVE, "hellothere"))
+    sct.cmd_q.put(ClientCommand(ClientCommand.RECEIVE, "2 hellothere"))
     reply = sct.reply_q.get(True)
     print(reply.type, reply.data)
-    sct.cmd_q.put(ClientCommand(ClientCommand.CLOSE))
-    reply = sct.reply_q.get(True)
-    print(reply.type, reply.data)
-    pass
+    # sct.cmd_q.put(ClientCommand(ClientCommand.CLOSE))
+    # reply = sct.reply_q.get(True)
+    # print(reply.type, reply.data)
+    # pass
