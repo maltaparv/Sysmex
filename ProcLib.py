@@ -3,7 +3,6 @@ import os.path
 import datetime
 from ClassLib import const
 
-
 # TODO_done 10-12 all constants must be in separate class (2020-10-03)
 def write_log(message, log_file='Log') -> None:
     """ Log all data and current date-time stamp to special file

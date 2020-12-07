@@ -30,7 +30,6 @@ class BrowserHandler(QtCore.QObject):
 
 
 class MyWindow(QtWidgets.QMainWindow):
-#class MyWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(MyWindow, self).__init__()
         self.ui = Ui_MainWindow()
@@ -69,33 +68,35 @@ class MyWindow(QtWidgets.QMainWindow):
                                       _QMessageBox.Yes | _QMessageBox.No, _QMessageBox.No)
         if reply == _QMessageBox.Yes:
             event.accept()
+            write_log('Завершение работы.')
         else:
             event.ignore()
+            write_log('Передумали выходить.')
 
 
 def btn_click():
     msg = 'Старт прослушки порта. '
     print(msg)
-    application.ui.plainTextEdit.appendPlainText(msg)
-    # thread1 = Thread(target=mainloop())
-    # thread1.start().
-    # _thread.start_new_thread(mainloop())
-    # mainloop()
-
-    # daemonThread.start()
+    application.ui.textBrowser.setTextColor(QColor(0, 0, 150))
+    application.ui.textBrowser.append(msg)
 
 
 def btn_test1():
-    print('test1')
-    application.ui.plainTextEdit.appendPlainText('test1')
+    msg = 'test1.'
+    application.ui.textBrowser.setTextColor(QColor(150, 0, 0))
+    application.ui.textBrowser.append(msg)
 
 
 def btn_test2():
     msg = 'закрыть прослушку порта. '
-    print(msg)
-    application.ui.plainTextEdit.appendPlainText(msg)
-    # thread1.join()
-    # daemonThread.join()
+    # print(msg)
+    application.ui.textBrowser.setTextColor(QColor(0, 0, 150))
+    application.ui.textBrowser.append(msg)
+
+
+def write_form(msg):
+    application.ui.textBrowser.setTextColor(QColor(0, 150, 0))
+    application.ui.textBrowser.append(msg)
 
 
 if __name__ == '__main__':
