@@ -144,7 +144,7 @@ def transfer():
     #     write_log(f'dict {key}, {record.dict_rec[key]}')
 
 
-def mainloop(self) -> None:
+def mainloop() -> None:
     """ ждём соединения
 
     :return: None

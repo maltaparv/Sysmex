@@ -66,10 +66,9 @@ def read_ini(ini_file):
     config = configparser.ConfigParser()  # создаём объекта парсера
     config.read(ini_file)  # читаем конфиг
 
-    const.analyser_id = int(config['Common']['analyser_id'])
-    const.analyser_name = config['Common']['analyser_name']
-    const.analyser_location = config['Common']['analyser_location']  # .encode('cp1251').decode('utf8')
-
+    const.analyser_id = int(config['Connection']['analyser_id'])
+    const.analyser_name = config['Connection']['analyser_name']
+    const.analyser_location = config['Connection']['analyser_location']  # .encode('cp1251').decode('utf8')
     const.host = config['Connection']['host']
     const.port = int(config['Connection']['port'])
     # const.sql_run = config.get('Connection', 'sql_run1')
