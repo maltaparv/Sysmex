@@ -104,7 +104,7 @@ def sql_insert(str_sql: str) -> int:
 
 
 def transfer():
-    """ Передача полченного от анализатора (всё уже в record.)
+    """ Передача полученного от анализатора (всё уже в record.)
 
     :return: None
     """
@@ -166,10 +166,9 @@ def log_alive():
     """check to log_alive
 
     """
-    #print(f"( log_alive :) {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.")
     while True:
-        write_log(' id: Sysmex.', f'{const.path_log}\\LogAlive.txt', f_mode='w')  # всегда перезаписывать!
-        time.sleep(6)
+        write_log(f'id: {const.analyser_id}.', f'{const.path_errlog}\\LogAlive.txt', f_mode='w')  # перезаписывать!
+        time.sleep(60)  # 60 сек
 
 
 if __name__ == '__main__':
