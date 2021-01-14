@@ -64,7 +64,7 @@ class SocketClientThread(threading.Thread):
     def run(self):
         while self.alive.isSet():
             try:
-                # Queue.get with timeout to allow checking self.alive
+                # Queue.get with timeout to allow checking self.log_alive
                 cmd = self.cmd_q.get(True, 0.1)
                 self.handlers[cmd.type](cmd)
             except queue.Empty as e:

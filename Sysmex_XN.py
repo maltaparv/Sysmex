@@ -4,9 +4,8 @@ import pyodbc  # для MS SQL SERVER - рекомендовано Microsoft
 from Parsing import parse_xn350, record
 from ProcLib import write_log, write_errlog, read_ini
 from ClassLib import const
-
-
-# TODO_done: ANALYSER_ID, PORT, PATH_LOG - read from .ini-file and assign correct values. These values are default!
+import time
+from threading import Thread
 
 
 def create_socket():
@@ -163,12 +162,21 @@ def mainloop() -> None:
         write_log(f">>> Ready to next connection.")
 
 
+def log_alive():
+    """check to log_alive
+
+    """
+    #print(f"( log_alive :) {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.")
+    while True:
+        write_log(' id: Sysmex.', f'{const.path_log}\\LogAlive.txt', f_mode='w')  # всегда перезаписывать!
+        time.sleep(6)
+
+
 if __name__ == '__main__':
-    # ToDo_done read_ini
-    # const = CONST()  # to fill from ini
-    # fn_ini = 'sysmex350.ini'
     fn_ini = 'sysmex.ini'
     read_ini(fn_ini)
     write_log(f'Run {const.analyser_name}, analyser_id={const.analyser_id}, ' +
               f'analyser_location={const.analyser_location}, listening IP:{const.host}:{const.port}.')
+    th = Thread(target=log_alive)
+    th.start()
     mainloop()

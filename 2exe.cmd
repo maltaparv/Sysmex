@@ -16,7 +16,8 @@ set ArcName=%3%dd%
 
 echo pyinstaller --onedir --onefile --name=%1 %1.py 
 rem pyinstaller --onedir --onefile --name=%fn% %fn%.py
-pyinstaller --onedir --onefile --name=%fn% -i "C:\DRV\Sysmex550\sysmex550.ico" %fn%.py
+rem pyinstaller --onedir --onefile --name=%fn% -i "C:\DRV\Sysmex550\sysmex550.ico" %fn%.py
+pyinstaller --onedir --onefile --name=%fn% --icon=Sysmex550.ico --noconsole %fn%.py
 
 rem с иконкой:
 rem pyinstaller --onedir --onefile --name=%1 -i "C:\Data\Icon.ico" %1.py

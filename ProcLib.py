@@ -3,27 +3,28 @@ import os.path
 import datetime
 from ClassLib import const
 
+
 # TODO_done 10-12 all constants must be in separate class (2020-10-03)
-def write_log(message, log_file='Log') -> None:
+def write_log(message, log_file='Log', f_mode='a') -> None:
     """ Log all data and current date-time stamp to special file
 
     :param message:
     :param log_file:
+    :param f_mode:
     :return: None
     """
     # TODO send list of parameters instead of one    write_log(*message) -> None:(2020-10-03)
     # write_log(message: str) -> None:    write_log(*message) -> None:
     now = datetime.datetime.now()
-    # TODO_done 10-12 all constants must be in separate class (2020-10-03)
-    # const.path_log = r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\\"  # - from ini-file
-    filename = f'{const.path_log}\\{log_file}{now.strftime("%Y-%m-%d")}.txt'
-    print('===', filename)
-    # r'D:\TempData\Log.tx  t' r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\LogSysmex.txt" "LogSysmex.txt"
-    with open(filename, 'a') as f:
+    if log_file == 'Log':
+        filename = f'{const.path_log}\\{log_file}{now.strftime("%Y-%m-%d")}.txt'
+    else:
+        filename = log_file
+    with open(filename, f_mode) as f:
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         prefix_message = f'{time_stamp} {message}'
         f.write(f'{prefix_message}\n')
-        if const.mode.find('SCR') > -1:
+        if const.mode.find('SCR') > -1 and f_mode != 'w':
             print(prefix_message, sep=' ')  # and always print to screen
 
 

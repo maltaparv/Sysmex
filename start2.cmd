@@ -1,0 +1,1 @@
+start "Sysmex550" /B python Sysmex_XN.pyw

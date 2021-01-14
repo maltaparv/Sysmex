@@ -125,7 +125,7 @@ Record type                Record     Level Description
                            identifier
 Header Record              H          0     Contains the sender and the receiver information
 Patient Info Record        P          1     Contains the patient information
-Inquiry Record             Q          1     Contains inquiry intothe host computer for analysis order information
+Inquiry Record             Q          1     Contains inquiry into the host computer for analysis order information
 Analysis Order Record      O          2     Contains analysis order information
 Analysis Result Record     R          3     Contains analysis results
 Comment Record             C          1-4   Contains comments about the sample or patient

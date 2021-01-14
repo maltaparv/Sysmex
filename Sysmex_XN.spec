@@ -30,4 +30,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True , icon='C:\\DRV\\Sysmex550\\sysmex550.ico')
+          console=False , icon='Sysmex550.ico')

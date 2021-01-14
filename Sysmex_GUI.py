@@ -4,7 +4,6 @@ from PyQt5.QtGui import QColor
 #from mydesign import Ui_MainWindow, QtGui, QtCore  # импорт нашего сгенерированного файла
 from mydesign import Ui_MainWindow  # импорт нашего сгенерированного файла
 import sys
-# doc: https://python-scripts.com/pyqt5#pyqt5-designer
 import socket
 import pyodbc  # для MS SQL SERVER - рекомендовано Microsoft
 from Parsing import parse_xn350, record
@@ -15,6 +14,8 @@ from threading import Thread
 import time
 
 
+# doc: https://python-scripts.com/pyqt5#pyqt5-designer
+# https://evileg.com/ru/post/579/  - Использование QThread с применением moveToThread
 # Объект, который будет перенесён в другой поток для выполнения кода
 class BrowserHandler(QtCore.QObject):
     # running = False
@@ -22,11 +23,11 @@ class BrowserHandler(QtCore.QObject):
 
     # метод, который будет выполнять алгоритм в другом потоке
     def run(self):
-        # while True:
-        #     # посылаем сигнал из второго потока в GUI поток
-        #     self.newTextAndColor.emit(f'{time.strftime("%Y-%m-%d %H:%M:%S")} - thread 2 var 1.\n', QColor(0, 0, 150))
-        #     QtCore.QThread.msleep(1000)
-        mainloop(self)
+        while True:
+            # посылаем сигнал из второго потока в GUI поток
+            self.newTextAndColor.emit(f'{time.strftime("%Y-%m-%d %H:%M:%S")} - thread 2 var 1.\n', QColor(0, 150, 0))
+            QtCore.QThread.msleep(1000)
+        # mainloop()
 
 
 class MyWindow(QtWidgets.QMainWindow):
@@ -34,10 +35,8 @@ class MyWindow(QtWidgets.QMainWindow):
         super(MyWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowIcon(QtGui.QIcon('Sysmex350.ico'))  # ToDo а для 550-го нужно ли измнять иконку?
+        self.setWindowIcon(QtGui.QIcon('Sysmex550.ico'))  # ToDo а для 550-го нужно ли измнять иконку?
         self.statusBar().showMessage('Состояние: готов.')
-        # self.ui.label.setFont(QtGui.QFont('SansSerif', 30))  # Изменение шрифта и размера
-        # self.ui.label.setGeometry(QtCore.QRect(10, 10, 200, 200))  # изменить геометрию ярлыка
         # self.ui.btn_run.clicked.connect(self.btnClicked)  # подключение клик-сигнал к слоту btnClicked
         self.ui.btn_run.clicked.connect(btn_click)  # подключение клик-сигнал к слоту btnClicked
         self.ui.btn_test_1.clicked.connect(btn_test1)
@@ -62,6 +61,11 @@ class MyWindow(QtWidgets.QMainWindow):
         self.ui.textBrowser.append(string)
 
     def closeEvent(self, event):
+        """ Предупреждение при закрытии окна
+
+        :param event:
+        :return:
+        """
         _QMessageBox = QtWidgets.QMessageBox
         reply = _QMessageBox.question(self, ' Последнее предупреждение: ',
                                       'Вы действительно хотите закрыть программу?',
