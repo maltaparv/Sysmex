@@ -30,6 +30,10 @@ def parse_patient_record(line):
     line_patient = line.decode('cp1251')
     print('line_patient=', line_patient)
     record_field = line.decode('cp1251').split('|')
+    if len(record_field) <= 4:
+        record.history_number = '0'
+        record.fio = '--- no fio ---'
+        return None
     record.history_number = record_field[4]
     record.fio = record_field[5].replace('^', ' ').strip()
     print('record.history_number=', record.history_number)

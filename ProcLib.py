@@ -104,7 +104,4 @@ def read_ini(ini_file):
 if __name__ == "__main__":
     write_log("Testing function write_log in my ProcLib.")
     write_log("Testing function write_log in my ProcLib - write to ErrLog.", log_file='ErrLog')
-    # для def write_log(*message) -> None:
-    # write_log("aa1")  # ('aa1',)
-    # write_log("a1", "b2")  # ('a1', 'b2')
-    # write_log(123, "c33")  # ('a1', 'b2')
+

@@ -149,22 +149,19 @@ def mainloop() -> None:
     :return: None
     """
     while True:
-        # ToDO_ проверка текущей даты - не надо, она есть в write_log()
         record.__init__()  # при получении данных - "обнулить" всё
         data_obtained = create_socket()
         write_log(f'>>> After create_socket() - data_obtained:\n{data_obtained}\n--- End of data_obtained.')
-
         if len(data_obtained) > 0:
             parse_xn350(data_obtained)
             transfer()
-
-        # write_log(f">>> Ready to next connection. Date-time: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         write_log(f">>> Ready to next connection.")
 
 
 def log_alive():
-    """check to log_alive
+    """ для внешнего контролирования, что процесс жив, периодически пишется в файл текущее время
 
+    :return: None
     """
     while True:
         write_log(f'id: {const.analyser_id}.', f'{const.path_errlog}\\LogAlive.txt', f_mode='w')  # перезаписывать!
@@ -176,6 +173,7 @@ if __name__ == '__main__':
     read_ini(fn_ini)
     write_log(f'Run {const.analyser_name}, analyser_id={const.analyser_id}, ' +
               f'analyser_location={const.analyser_location}, listening IP:{const.host}:{const.port}.')
-    th = Thread(target=log_alive)
+    # th = Thread(target=log_alive, name=f'{const.analyser_id}_ALIVE')
+    th = Thread(target=log_alive, name='Sysmex_ALIVE')
     th.start()
     mainloop()
