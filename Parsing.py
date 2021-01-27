@@ -1,24 +1,10 @@
 # Parsing.py 2020-11-09 ParseXN350
 from ClassLib import RECORD
-from ProcLib import write_log
 from datetime import datetime
+# from Sysmex_XN import logger
+import logging.config
 
-
-def name_an(num: int, name: str) -> str:
-    """Trunc last 2 symbols for first 28 analysis due to it's dilution ratio = 1
-
-    (this ratio = 1 presents in the field analysis's name
-    - see p.28 of Automated Hematology Analyzer XN-L series. ASTM Host Interface Specifications.
-    Revision 6. June 2017, Sysmex Corporation)
-    Analysis Parameter ID
-
-    :param num:
-    :param name:
-    :return: str:
-    """
-    if num <= 28:
-        return name[:-2:]  # Analysis Parameter ID without last 2 characters
-    return name
+logger = logging.getLogger()
 
 
 def parse_patient_record(line):
@@ -28,16 +14,16 @@ def parse_patient_record(line):
     :return:
     """
     line_patient = line.decode('cp1251')
-    print('line_patient=', line_patient)
+    logger.debug(f"Patient Info Record:\n{line_patient}")
     record_field = line.decode('cp1251').split('|')
     if len(record_field) <= 4:
+        logger.warning(f'Проверка Patient Info Record: Нет номера истории, ФИО: \n{line_patient}')
         record.history_number = '0'
         record.fio = '--- no fio ---'
         return None
     record.history_number = record_field[4]
     record.fio = record_field[5].replace('^', ' ').strip()
-    print('record.history_number=', record.history_number)
-    print('record.fio=', record.fio)
+    logger.debug(f'parse_patient_record: record.history_number={record.history_number}, record.fio={record.fio=}.')
     return None
 
 
@@ -49,11 +35,13 @@ def parse_result_record(line):
     """
     record_field = line.decode('cp1251').split('|')
     if len(record_field) < 12:
-        print('!!! Err: строка содержит менее 12 полей! line=', line)
+        logger.warning(f'Cтрока {line} содержит менее 12 полей. Она игнорируется.')
         return
     an_no = int(record_field[1])
     an_name = record_field[2].replace('^', ' ').strip()
-    an_name = name_an(an_no, an_name)
+    # an_name = name_an(an_no, an_name)
+    if an_no <= 28:
+        an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters
     an_res = record_field[3]
     an_ed = record_field[4]
     an_flag = record_field[6]
@@ -67,7 +55,8 @@ def parse_result_record(line):
     # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an
     num = int(record_field[1])  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
     record.dict_rec[f'number{num}'] = num
-    record.dict_rec[f'ParamName{num}'] = name_an(num, record_field[2].replace('^', ' ').strip())
+    # record.dict_rec[f'ParamName{num}'] = name_an(num, record_field[2].replace('^', ' ').strip())
+    record.dict_rec[f'ParamName{num}'] = an_name
     record.dict_rec[f'ParamValue{num}'] = record_field[3]
     record.dict_rec[f'ParamMsr{num}'] = record_field[4]
     record.dict_rec[f'flag{num}'] = record_field[6]
@@ -76,7 +65,6 @@ def parse_result_record(line):
     record.dict_rec[f'date_time{num}'] = date_object.strftime('%Y-%m-%d %H:%M:%S')
     # for num in [2, 5, 7, 8, 9, 10, 11]:
     #     record.dict_rec[f'field{num}'] = record_field[num]  # для полей с неизвестной семантикой - пусть пока будут.
-
     return None
 
 
@@ -85,12 +73,9 @@ def parse_xn350(data):
 
     :param data:
     :return:
-    """''
-    mes = f'Parsing data for Sysmex XN-350... Data:\n{data}'
-    write_log(mes)
+    """
+    logger.debug("Парсинг...")
     record.result_text = data.decode('cp1251')  # это весь полученный текст для записи в SQL
-    # record.__init__()  # при получении данных - "обнулить" всё
-
     dl = data.splitlines()
     # Records types according to "Automated Hematology Analyzer XN-L series.
     # ASTM Host Interface Specifications", page 14.
@@ -112,7 +97,7 @@ def parse_xn350(data):
             parse_patient_record(line)
         elif record_id == 'R':
             parse_result_record(line)
-        print(f'Record type: {record_type}. {line}')
+        # logger.debug(f"Record type: {record_type}. {line}")
     return None
 
 
@@ -138,3 +123,8 @@ Scientific Info Record     S          N/A   Not used
 Message Terminator Record  L          0     Indicates the end of the message
 ............................................................................
 """
+    number = 29
+    ss = "^^^^WBC^1"
+    t = lambda s, n: s[:-2] if n <= 28 else s
+    print(f"num={number}, lambda={t(ss, 28)}")
+    print(f"lambda={(lambda s, n: s[:-2] if n <= 28 else s)(ss, 28)}.")

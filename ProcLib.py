@@ -60,7 +60,7 @@ def read_ini(ini_file):
     # ini_file = "Sysmex350.ini"
     if not os.path.isfile(ini_file):
         write_log(f"Нет файла {ini_file}. Завершение работы.")
-        raise SystemExit(1)  # exit(0) sys.exit
+        raise SystemExit(1)  # sys.exit(1)  exit(2) os._exit(3) quit(4)
 
     # TODO check errors in filling ini-file, e.g.:  path_log = <empty>, etc. (2020-10-03)
 
@@ -85,20 +85,10 @@ def read_ini(ini_file):
 
     const.num_run = int(config.get('Stat', 'num_run')) + 1
     config.set('Stat', 'num_run', str(const.num_run))
-    config.set('Stat', 'last_run', str(datetime.datetime.now()))
+    const.last_run = str(datetime.datetime.now())
+    config.set('Stat', 'last_run', const.last_run)
     with open(ini_file, "w") as config_file:
         config.write(config_file)
-
-    # ToDo_Done 10-12 all constants must be in separate class (2020-10-03)
-    print(f'analyser_id={const.analyser_id}.')
-    print(f'analyser_name={const.analyser_name}.')
-    print(type(const.host), len(const.host))
-    print(f'host=({const.host}).')
-    print(f'port={const.port}.')
-    print(f'path_log={const.path_log}')
-    print(f'path_errlog={const.path_errlog}')
-    print(f'num_run = {const.num_run}.')
-    print(f'last_run={const.last_run}.')
 
 
 if __name__ == "__main__":
