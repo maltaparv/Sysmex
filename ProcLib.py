@@ -2,6 +2,7 @@
 import os.path
 import datetime
 from ClassLib import const
+import configparser
 
 
 # TODO_done 10-12 all constants must be in separate class (2020-10-03)
@@ -56,14 +57,7 @@ def read_ini(ini_file):
     :param const:
     :return:
     """
-    import configparser  # импортируем библиотеку
-    # ini_file = "Sysmex350.ini"
-    if not os.path.isfile(ini_file):
-        write_log(f"Нет файла {ini_file}. Завершение работы.")
-        raise SystemExit(1)  # sys.exit(1)  exit(2) os._exit(3) quit(4)
-
     # TODO check errors in filling ini-file, e.g.:  path_log = <empty>, etc. (2020-10-03)
-
     config = configparser.ConfigParser()  # создаём объекта парсера
     config.read(ini_file)  # читаем конфиг
 
@@ -94,4 +88,3 @@ def read_ini(ini_file):
 if __name__ == "__main__":
     write_log("Testing function write_log in my ProcLib.")
     write_log("Testing function write_log in my ProcLib - write to ErrLog.", log_file='ErrLog')
-

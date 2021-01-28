@@ -1,6 +1,7 @@
 # Sysmex 2020-11-09 (from tcpServ 2020-09-21)
 import socket
 import sys
+import os
 import time
 import pyodbc  # для MS SQL SERVER - рекомендовано Microsoft
 from Parsing import parse_xn350, record
@@ -9,8 +10,10 @@ from ClassLib import const
 from threading import Thread
 import logging.config
 
-logging.config.fileConfig('logging.ini')
-logger = logging.getLogger()
+FN_INI = "sysmex.ini"  # начальная конфигурация. Все конфигурационные файлы располагаются в каталоге, откуда запуск.
+FN_LOG = "Sysmex.log"  # циклическая запись логов. Ещё его имя и расположение и задано в FN_LOGGING_INI
+FN_LOGGING_INI = "logging.ini"  # настройки логирования.
+FN_ALIVE = "LogAlive.txt"  # файл контроля, работает ли процесс (для внешней программы отслеживания)
 
 
 def create_socket():
@@ -161,17 +164,28 @@ def log_alive():
     :return: None
     """
     while True:
-        write_log(f'id: {const.analyser_id}.', f'{const.path_errlog}\\LogAlive.txt', f_mode='w')  # перезаписывать!
+        write_log(f"id: {const.analyser_id}.", FN_ALIVE, f_mode="w")  # перезаписывать!
         time.sleep(60)  # 60 сек
 
 
 if __name__ == '__main__':
-    fn_ini = 'sysmex.ini'
-    read_ini(fn_ini)
+    # Проверка наличия конфигурацилнных файлов
+    if not os.path.isfile(FN_LOGGING_INI):
+        write_log(f"; CRITICAL; Не найден ini-файл логирования: {FN_LOGGING_INI}. Завершение работы.", FN_LOG)
+        sys.exit(1)  # sys.exit(1)  exit(2) os._exit(3) quit(4) raise SystemExit(5)
+
+    logging.config.fileConfig(FN_LOGGING_INI)
+    logger = logging.getLogger()
+
+    if not os.path.isfile(FN_INI):
+        logger.fatal(f"Не найден конфигурационный ini-файл: {FN_INI}. Завершение работы.")
+        sys.exit(2)
+
+    read_ini(FN_INI)
     logger.info(f'Запуск {const.analyser_name}, id={const.analyser_id}, {const.analyser_location}, '
                 f'IP:{const.host}:{const.port}.')
-    # th = Thread(target=log_alive, name=f'{const.analyser_id}_ALIVE')
-    th = Thread(target=log_alive, name='Sysmex_ALIVE', daemon=True)
+
+    th = Thread(target=log_alive, name=FN_ALIVE, daemon=True)
     # Процесс - демон, чтобы выйти из основного при повторном запуске по sys.exit(901).
     # This thread dies when main thread exits.
     th.start()

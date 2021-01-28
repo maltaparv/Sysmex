@@ -1,11 +1,8 @@
 # Parsing.py 2020-11-09 ParseXN350
 from ClassLib import RECORD
 from datetime import datetime
-# from Sysmex_XN import logger
 import logging.config
-
 logger = logging.getLogger()
-
 
 def parse_patient_record(line):
     """парсинг строки пациента. Получаем номер истории, ФИО, и (если будет нужно) название отделения.
