@@ -17,9 +17,9 @@ def parse_patient_record(line):
     logger.debug(f"Patient Info Record:\n{line_patient}")
     record_field = line.decode('cp1251').split('|')
     if len(record_field) <= 4:
-        logger.warning(f'Проверка Patient Info Record: Нет номера истории, ФИО: \n{line_patient}')
+        logger.warning(f'В Patient Info Record нет номера истории, ФИО: {line_patient}')
         record.history_number = '0'
-        record.fio = '--- no fio ---'
+        record.fio = '--- нет ФИО ---'
         return None
     record.history_number = record_field[4]
     record.fio = record_field[5].replace('^', ' ').strip()
@@ -35,13 +35,13 @@ def parse_result_record(line):
     """
     record_field = line.decode('cp1251').split('|')
     if len(record_field) < 12:
-        logger.warning(f'Cтрока {line} содержит менее 12 полей. Она игнорируется.')
+        logger.warning(f"Строка {line} содержит менее 12 полей. Она игнорируется.")
         return
     an_no = int(record_field[1])
     an_name = record_field[2].replace('^', ' ').strip()
     # an_name = name_an(an_no, an_name)
     if an_no <= 28:
-        an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters
+        an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters: "^^^^WBC^1" -> "^^^^WBC"
     an_res = record_field[3]
     an_ed = record_field[4]
     an_flag = record_field[6]
@@ -49,7 +49,7 @@ def parse_result_record(line):
     # TODO_done 2020-10-06_08 (для SQL формат такой: “2019-12-31 23:52:42.423”)
     date_object = datetime.strptime(date_string, "%Y%m%d%H%M%S")  # "20201008235159"
     an_time = date_object.strftime('%Y-%m-%d %H:%M:%S')  # для MS SQL формат такой: “2019-12-31 23:52:49.123”
-    print(an_no, an_name, an_res, an_ed, an_flag, an_time, sep=';')
+    # print(an_no, an_name, an_res, an_ed, an_flag, an_time, sep=';')
     record.an = [an_no, an_name, an_res, an_ed, an_flag, an_time]  # current record with one result
     record.list_research.append(record.an)  # Add to patient's list of analysis the current result
     # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an
@@ -64,7 +64,7 @@ def parse_result_record(line):
     date_object = datetime.strptime(record_field[12], "%Y%m%d%H%M%S")  # "20201008235159"
     record.dict_rec[f'date_time{num}'] = date_object.strftime('%Y-%m-%d %H:%M:%S')
     # for num in [2, 5, 7, 8, 9, 10, 11]:
-    #     record.dict_rec[f'field{num}'] = record_field[num]  # для полей с неизвестной семантикой - пусть пока будут.
+    #     record.dict_rec[f"field{num}"] = record_field[num]  # для полей с неизвестной семантикой - пусть пока будут.
     return None
 
 
@@ -125,6 +125,6 @@ Message Terminator Record  L          0     Indicates the end of the message
 """
     number = 29
     ss = "^^^^WBC^1"
-    t = lambda s, n: s[:-2] if n <= 28 else s
-    print(f"num={number}, lambda={t(ss, 28)}")
-    print(f"lambda={(lambda s, n: s[:-2] if n <= 28 else s)(ss, 28)}.")
+    tt = lambda s, n: s[:-2] if n <= 28 else s
+    print(f"num={number}, lambda={tt(ss, 28)}")
+    print((lambda s, n: s[:-2] if n <= 28 else s)(ss, 28))

@@ -4,4 +4,6 @@ build/
 dist/
 
 # my log files
-Log*.txt
+Log*.txt*
+Sysmex.log*
+

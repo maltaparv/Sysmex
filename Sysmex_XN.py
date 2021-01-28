@@ -12,10 +12,11 @@ import logging.config
 logging.config.fileConfig('logging.ini')
 logger = logging.getLogger()
 
+
 def create_socket():
     """ Create connection and listening on PORT
 
-    also log all receiveing data
+    also log all receiving data
     :return: received data
     """
     buffer_size: int = 1024 * 20  # 20  (Normally 1024, but to fast response it may be smaller)
@@ -23,78 +24,62 @@ def create_socket():
     # OSError: [WinError 10048] Обычно разрешается только одно использование адреса сокета (протокол/сетевой адрес/порт)
     try:
         s.bind((const.host, const.port))  # Host and port must be a tuple, e.g. s.connect(('10.12.0.30', 6634))
-    except Exception as e:
-        mes = "ERR >>> при попытке открыть порт (повторный запуск)."
-        write_log(mes + str(e))
-        write_errlog(mes, str(e))
-        logger.exception('При попытке открыть сокет (повторный запуск).')
-        sys.exit(911)  # ToDO - не завершается! mainloop?
+    except OSError as e:
+        logger.exception('Ошибка при открытии сокета (повторный запуск?).')
+        if e.winerror == 10048:
+            logger.info("Это повторный запуск. Завершение работы.")
+            sys.exit(901)
     finally:
         pass
 
     s.listen(1)  # the value may help by setting the maximum length of the queue for pending connections.
-    write_log('>>> Start listening...')
-    logger.info(f'Start listening... {const.analyser_name}, id={const.analyser_id}, IP:{const.host}:{const.port}.')
+    logger.info(f"Ожидание соединения... {const.analyser_name}, id={const.analyser_id}, IP:{const.host}:{const.port}.")
     conn, addr = s.accept()
-    mes = f'>>> Connection and address: {conn} {addr}.'
-    write_log(mes + "-" * 20)
-    logger.info(f'Connection and address: {conn} {addr}.')
+    logger.info(f"Соединение с анализатором: {conn} {addr}.")
     no_data = b'--- NO DATA! It is fake :)'  # чтобы не было ошибки 2020-10-19
     data_received = b''
     rec_eot = b'L|1|N\r'  # Message Terminator Record 'L' - Indicates the end of the message
     while 1:
         # ConnectionResetError: [WinError 10054] Удаленный хост принудительно разорвал существующее подключение
         # data = b'Номер анализатора'  # data - это не тот объект, что будет создан при выполнении data = conn.recv(buffer_size)
-        # write_log(f'>>> debug1 01 data = b"01" id(data)={id(data)}.')
         try:
-            # ERR 2020-10-02 UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc7 in position 68: invalid continuation byte
             data = no_data  # чтобы не было ошибки 2020-10-19
             err1 = """ File "D:\_KDL_\Python\TestSocket\Sysmex_XN.py", line 55, in create_socket
                     write_log(f'>>> получена часть данных, data:\n{data}\n--- конец части данных.')
                     UnboundLocalError: local variable 'data' referenced before assignment"""
             data = conn.recv(buffer_size)  # data - это каждый раз новый объект!!!
-            write_log(f'>>> debug1 02 data = conn.recv(buffer_size) id(data)={id(data)}.')
             logger.debug(f'data = conn.recv(buffer_size) id(data)={id(data)}.')
             # raise socket.error
         except Exception as e:
-            write_log("ERR >>> " + str(e))
-            write_errlog("ERR ---", str(e))
-            logger.exception("ERR data = conn.recv(buffer_size)")
+            # write_log("ERR >>> " + str(e))
+            # write_errlog("ERR ---", str(e))
+            logger.exception("Ошибка при получении данных из сокета.")
             # socket.error
             # if e.__class__.__name__ == "socket.error":
             #     write_log("ERR [WinError 10054] Удаленный хост принудительно разорвал существующее подключение.")
         else:
-            pass
+            logger.debug("--- Не было исключения при conn.recv(buffer_size)")
         finally:
             if data != no_data:
-                write_log(f'>>> получена часть данных, data:\n{data}\n--- конец части данных.')
-                logger.debug(f'Received part of data:\n{data}')
+                logger.debug(f"Получена часть данных:\n{data}")
                 data_received += data
 
         if data == no_data:
-            write_log(f'>>> no_data - return.')  # 2020-10-29  пров на выход по нет данных
-            logger.debug('no_data - return.')
-            return ''
+            logger.debug("Нет даных - return.")
+            return ""
         elif data.upper().find(b'QKRQ') > -1:
-            write_log('>>> Кукареку - не спим, работаем...')
-            write_log(data.decode())
-            logger.info("We don't sleep! " + data.decode())
-            return ''
+            logger.info(">>> Кукареку - не спим, работаем! " + data.decode())
+            return ""
         elif not data:
-            write_log('>>> not data - break.')
-            logger.debug('no_data - break.')
+            logger.debug("Нет даных - break.")
             break
         elif data.find(rec_eot) > -1:
-            write_log(f'>>> find rec_eot - break.\n{data}\n--- конец rec_eot.')
-            logger.debug('find rec_eot.')
+            logger.debug("Есть Message Terminator Record 'L' - Indicates the end of the message - break.")
             break
         else:
-            write_log(f'>>> Received:\n{data}')
-            logger.debug(f'Received unknown data:\n{data}')
-
+            logger.warning(f"Получены неизвестные данные:\n{data}")
     conn.close()
-    write_log(f'>>> Connection closed normally. data_received:\n{data_received}\n--- конец data_received.')
-    logger.info(f'Connection closed normally. data_received:\n{data_received}')
+    logger.info(f"Соединение закрыто успешно.")
     return data_received
 
 
@@ -111,9 +96,7 @@ def sql_insert(str_sql: str) -> int:
         cursor.execute(str_sql)
         conn.commit()
     except Exception as e:
-        write_log("ERR Ошибка при записи SQL. " + str(e))
-        write_errlog("ERR Ошибка при записи SQL.", str(e))
-        logger.exception("ERR Ошибка при записи SQL.")
+        logger.exception("Ошибка при записи SQL.")
         return -1
     return 0
 
@@ -123,7 +106,6 @@ def transfer():
 
     :return: None
     """
-    write_log(f">>> transfer(): номер истории={record.history_number}, ФИО={record.fio}")
     logger.info(f"Номер истории={record.history_number}, ФИО={record.fio}")
     cnt_max = 22  # (ограничение кол-ва полей в LabAutoResult)
     result_text = record.result_text  # 'тест7 Sysmex XN-350 '
@@ -133,13 +115,11 @@ def transfer():
     result_date = '2020-12-31 23:59:57'
     nom = 0  # кол-во параметров (CntParam в SQL)
     for an in record.list_research:
-        write_log(f"Получено: {str(an)}")
         logger.info(f"Получено: {str(an)}")
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
         if nom > cnt_max:
-            write_log(f'Анализов больше максимального({cnt_max}).')
-            logger.warning(f'Анализов больше максимального({cnt_max}).')
+            logger.warning(f"Анализов больше максимального (max={cnt_max}).")
             nom = cnt_max
             break
 
@@ -169,11 +149,9 @@ def mainloop() -> None:
     while True:
         record.__init__()  # при получении данных - "обнулить" всё
         data_obtained = create_socket()
-        write_log(f"Получено байт: {len(data_obtained)}.\n{data_obtained}")
         logger.debug(f"Получено байт: {len(data_obtained)}.\n{data_obtained}")
         if len(data_obtained) > 0:
             parse_xn350(data_obtained)
-            logger.debug("Передача...")
             transfer()
 
 
@@ -190,11 +168,12 @@ def log_alive():
 if __name__ == '__main__':
     fn_ini = 'sysmex.ini'
     read_ini(fn_ini)
-    write_log(f'Run {const.analyser_name}, analyser_id={const.analyser_id}, ' +
-              f'analyser_location={const.analyser_location}, listening IP:{const.host}:{const.port}.')
     logger.info(f'Запуск {const.analyser_name}, id={const.analyser_id}, {const.analyser_location}, '
                 f'IP:{const.host}:{const.port}.')
     # th = Thread(target=log_alive, name=f'{const.analyser_id}_ALIVE')
-    th = Thread(target=log_alive, name='Sysmex_ALIVE')
+    th = Thread(target=log_alive, name='Sysmex_ALIVE', daemon=True)
+    # Процесс - демон, чтобы выйти из основного при повторном запуске по sys.exit(901).
+    # This thread dies when main thread exits.
     th.start()
     mainloop()
+    print("--- Exit from __main__.")
