@@ -24,27 +24,29 @@ def create_socket():
     """
     buffer_size: int = 1024 * 20  # 20  (Normally 1024, but to fast response it may be smaller)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # OSError: [WinError 10048] Обычно разрешается только одно использование адреса сокета (протокол/сетевой адрес/порт)
     try:
         s.bind((const.host, const.port))  # Host and port must be a tuple, e.g. s.connect(('10.12.0.30', 6634))
     except OSError as e:
-        logger.exception('Ошибка при открытии сокета (повторный запуск?).')
         if e.winerror == 10048:
-            logger.info("Это повторный запуск. Завершение работы.")
+            # OSError: [WinError 10048] Обычно разрешается только одно использование адреса сокета
+            # (протокол/сетевой адрес/порт)
+            logger.info("Это повторный запуск [WinError 10048]. Завершение работы.")
             sys.exit(901)
+        else:
+            logger.exception('Ошибка при открытии сокета (повторный запуск?).')
     finally:
         pass
 
     s.listen(1)  # the value may help by setting the maximum length of the queue for pending connections.
     logger.info(f"Ожидание соединения... {const.analyser_name}, id={const.analyser_id}, IP:{const.host}:{const.port}.")
     conn, addr = s.accept()
-    logger.info(f"Соединение с анализатором: {conn} {addr}.")
+    logger.info(f"Соединенились с анализатором: {conn} {addr}.")
     no_data = b'--- NO DATA! It is fake :)'  # чтобы не было ошибки 2020-10-19
     data_received = b''
     rec_eot = b'L|1|N\r'  # Message Terminator Record 'L' - Indicates the end of the message
     while 1:
-        # ConnectionResetError: [WinError 10054] Удаленный хост принудительно разорвал существующее подключение
-        # data = b'Номер анализатора'  # data - это не тот объект, что будет создан при выполнении data = conn.recv(buffer_size)
+        # data = b'Номер анализатора'
+        # data - это не тот объект, что будет создан при выполнении data = conn.recv(buffer_size)
         try:
             data = no_data  # чтобы не было ошибки 2020-10-19
             err1 = """ File "D:\_KDL_\Python\TestSocket\Sysmex_XN.py", line 55, in create_socket
@@ -54,17 +56,17 @@ def create_socket():
             logger.debug(f'data = conn.recv(buffer_size) id(data)={id(data)}.')
             # raise socket.error
         except Exception as e:
-            # write_log("ERR >>> " + str(e))
-            # write_errlog("ERR ---", str(e))
-            logger.exception("Ошибка при получении данных из сокета.")
             # socket.error
-            # if e.__class__.__name__ == "socket.error":
-            #     write_log("ERR [WinError 10054] Удаленный хост принудительно разорвал существующее подключение.")
+            if e.winerror == 10054:
+                logger.info("Анализатор принудительно разорвал соединение [WinError 10054].")
+                # ConnectionResetError: [WinError 10054] Удаленный хост принудительно разорвал существующее подключение
+            else:
+                logger.exception("Ошибка при получении данных из сокета.")
         else:
-            logger.debug("--- Не было исключения при conn.recv(buffer_size)")
+            pass  # logger.debug("--- Не было исключения при conn.recv(buffer_size)")
         finally:
             if data != no_data:
-                logger.debug(f"Получена часть данных:\n{data}")
+                logger.debug(f"Получены данные:\n{data}")
                 data_received += data
 
         if data == no_data:
@@ -77,7 +79,7 @@ def create_socket():
             logger.debug("Нет даных - break.")
             break
         elif data.find(rec_eot) > -1:
-            logger.debug("Есть Message Terminator Record 'L' - Indicates the end of the message - break.")
+            logger.debug("Есть Message Terminator Record 'L' - break.")
             break
         else:
             logger.warning(f"Получены неизвестные данные:\n{data}")
@@ -93,7 +95,6 @@ def sql_insert(str_sql: str) -> int:
     try:
         conn = pyodbc.connect(const.sql_run)
         cursor = conn.cursor()
-        write_log(str_sql)
         logger.info(str_sql)
         cursor.execute('set dateformat ymd;')
         cursor.execute(str_sql)
@@ -110,15 +111,18 @@ def transfer():
     :return: None
     """
     logger.info(f"Номер истории={record.history_number}, ФИО={record.fio}")
+    # print(f"--- tеst Hist num={record.history_number}, ФИО={record.fio}")
     cnt_max = 22  # (ограничение кол-ва полей в LabAutoResult)
     result_text = record.result_text  # 'тест7 Sysmex XN-350 '
     str_start = 'INSERT INTO [LabAutoResult].[dbo].[AnalyzerResults](Analyzer_Id,HistoryNumber'  # начало строки INSERT
     str_tail = f')Values({const.analyser_id},{record.history_number}'  # хвост строки INSERT
     str_parm_names = ''
     result_date = '2020-12-31 23:59:57'
+    s_an = 'Полученные анализы:'  # полученные результы (для логов - все вместе, в разных строках)
     nom = 0  # кол-во параметров (CntParam в SQL)
     for an in record.list_research:
-        logger.info(f"Получено: {str(an)}")
+        # logger.info(f"Получено: {str(an)}")
+        s_an += f"\n{str(an)}"   # полученные результы (для логов - все вместе, в разных строках)
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
         if nom > cnt_max:
@@ -129,6 +133,7 @@ def transfer():
         str_parm_names += ''.join([f', ParamName{nom}, ParamValue{nom}, ParamMsr{nom}, Attention{nom} '])
         str_tail += ''.join([f", '{an[1]}', '{an[2]}', '{an[3]}', '{an[4]}' "])
         result_date = an[5]  # '2020-12-31 23:59:59' # дату-время выполнения берём из последнего анализа.
+    logger.info(s_an)
     str_parm_names += ''.join([', CntParam, ResultDate, ResultText'])
     str_tail += ''.join([f", {nom}, '{result_date}', '{result_text}'"])
     # str_tail += ''.join([f", GetDate(), '{result_text}'"])  # для второго варианта  - по времени добавления в SQL.

@@ -73,8 +73,8 @@ def read_ini(ini_file):
     const.password = config.get('Connection', 'pwd')
     const.sql_run = ''.join(['DRIVER={ODBC Driver 17 for SQL Server};SERVER=', const.server,
                              ';DATABASE=', const.database, ';UID=', const.user_name, ';PWD=', const.password])
-    const.path_log = config.get('LogFiles', 'path_log')
-    const.path_errlog = config.get('LogFiles', 'path_errlog')
+    # const.path_log = config.get('LogFiles', 'path_log')
+    # const.path_errlog = config.get('LogFiles', 'path_errlog')
     const.mode = config.get('Modes', 'mode')
 
     const.num_run = int(config.get('Stat', 'num_run')) + 1

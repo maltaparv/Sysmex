@@ -2,7 +2,9 @@
 from ClassLib import RECORD
 from datetime import datetime
 import logging.config
+
 logger = logging.getLogger()
+
 
 def parse_patient_record(line):
     """парсинг строки пациента. Получаем номер истории, ФИО, и (если будет нужно) название отделения.
@@ -11,16 +13,22 @@ def parse_patient_record(line):
     :return:
     """
     line_patient = line.decode('cp1251')
-    logger.debug(f"Patient Info Record:\n{line_patient}")
+    logger.debug(f"Patient Info Record: {line_patient}")
     record_field = line.decode('cp1251').split('|')
     if len(record_field) <= 4:
-        logger.warning(f'В Patient Info Record нет номера истории, ФИО: {line_patient}')
-        record.history_number = '0'
-        record.fio = '--- нет ФИО ---'
+        logger.warning(f"Нет номера истории, ФИО: {line_patient}")
+        record.history_number = "0"
+        record.fio = "--- нет ФИО ---"
         return None
     record.history_number = record_field[4]
+    if len(record.history_number) == 0:
+        record.history_number = '0'
+        logger.warning(f"Нет номера истории: {line_patient}")
     record.fio = record_field[5].replace('^', ' ').strip()
-    logger.debug(f'parse_patient_record: record.history_number={record.history_number}, record.fio={record.fio=}.')
+    if len(record.fio) == 0:
+        record.fio = "--- не ввели ФИО ---"
+
+    logger.debug(f"parse_patient_record: record.history_number={record.history_number}, record.fio={record.fio}.")
     return None
 
 
