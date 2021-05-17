@@ -25,8 +25,8 @@ def write_log(message, log_file='Log', f_mode='a') -> None:
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         prefix_message = f'{time_stamp} {message}'
         f.write(f'{prefix_message}\n')
-        if const.mode.find('SCR') > -1 and f_mode != 'w':
-            print(prefix_message, sep=' ')  # and always print to screen
+        # if const.mode.find('SCR') > -1 and f_mode != 'w':
+        #     print(prefix_message, sep=' ')  # and always print to screen
 
 
 def write_errlog(message, o_err) -> None:
@@ -44,9 +44,9 @@ def write_errlog(message, o_err) -> None:
         f.write(f'{prefix_message}\n')
         f.write(o_err)
         f.write('\n')
-        if "SCR" in const.mode:
-            print(prefix_message)
-            print(o_err)
+        # if "SCR" in const.mode:
+        #     print(prefix_message)
+        #     print(o_err)
 
 
 def read_ini(ini_file):
@@ -72,9 +72,9 @@ def read_ini(ini_file):
     const.password = config.get('Connection', 'pwd')
     const.sql_run = ''.join(['DRIVER={ODBC Driver 17 for SQL Server};SERVER=', const.server,
                              ';DATABASE=', const.database, ';UID=', const.user_name, ';PWD=', const.password])
-    const.mode = config.get('Modes', 'mode')
-    const.Max_Cnt_Param = int(config.get('Check', 'Max_Cnt_Param'))
-    const.Max_Length_Analyze_Name = int(config.get('Check', 'Max_Length_Analyze_Name'))
+    # const.mode = config.get('Modes', 'mode')
+    const.Max_Cnt_Param = int(config.get('Check', 'max_cnt_param'))
+    const.Max_Length_Analyze_Name = int(config.get('Check', 'max_length_analyze_name'))
     const.num_run = int(config.get('Stat', 'num_run')) + 1
     config.set('Stat', 'num_run', str(const.num_run))
     const.last_run = str(datetime.datetime.now())
