@@ -1,4 +1,4 @@
-# Sysmex 2020-11-09 (from tcpServ 2020-09-21)
+# Sysmex XN 350,550. 2020-11-09 (from tcpServ 2020-09-21)
 import socket
 import sys
 import os
@@ -11,9 +11,9 @@ from threading import Thread
 import logging.config
 
 FN_INI = "sysmex.ini"  # начальная конфигурация. Все конфигурационные файлы располагаются в каталоге, откуда запуск.
-FN_LOG = "Sysmex.log"  # циклическая запись логов. Ещё его имя и расположение и задано в FN_LOGGING_INI
+FN_LOG = "Sysmex.log"  # циклическая запись логов. Ещё его имя и расположение и задано в FN_LOGGING_INI.
 FN_LOGGING_INI = "logging.ini"  # настройки логирования.
-FN_ALIVE = "LogAlive.txt"  # файл контроля, работает ли процесс (для внешней программы отслеживания)
+FN_ALIVE = "LogAlive.txt"  # файл контроля, работает ли процесс (для внешней программы отслеживания).
 
 
 def create_socket():
@@ -45,21 +45,19 @@ def create_socket():
     data_received = b''
     rec_eot = b'L|1|N\r'  # Message Terminator Record 'L' - Indicates the end of the message
     while 1:
-        # data = b'Номер анализатора'
-        # data - это не тот объект, что будет создан при выполнении data = conn.recv(buffer_size)
         try:
             data = no_data  # чтобы не было ошибки 2020-10-19
             err1 = """ File "D:\_KDL_\Python\TestSocket\Sysmex_XN.py", line 55, in create_socket
-                    write_log(f'>>> получена часть данных, data:\n{data}\n--- конец части данных.')
                     UnboundLocalError: local variable 'data' referenced before assignment"""
             data = conn.recv(buffer_size)  # data - это каждый раз новый объект!!!
-            logger.debug(f'data = conn.recv(buffer_size) id(data)={id(data)}.')
-            # raise socket.error
-        except Exception as e:
-            # socket.error
+        except Exception as e:  # socket.error
             if e.winerror == 10054:
                 logger.info("Анализатор принудительно разорвал соединение [WinError 10054].")
                 # ConnectionResetError: [WinError 10054] Удаленный хост принудительно разорвал существующее подключение
+            elif e.winerror == 10053:
+                logger.info(" Программа на вашем хост-компьютере разорвала установленное подключение [WinError 10053].")
+                # ConnectionAbortedError: [WinError 10053]
+                # Программа на вашем хост-компьютере разорвала установленное подключение
             else:
                 logger.exception("Ошибка при получении данных из сокета.")
         else:
@@ -112,7 +110,7 @@ def transfer():
     """
     logger.info(f"Номер истории={record.history_number}, ФИО={record.fio}")
     # print(f"--- tеst Hist num={record.history_number}, ФИО={record.fio}")
-    cnt_max = 22  # (ограничение кол-ва полей в LabAutoResult)
+    # cnt_max = 28  # (ограничение кол-ва полей в LabAutoResult - было 22)
     result_text = record.result_text  # 'тест7 Sysmex XN-350 '
     str_start = 'INSERT INTO [LabAutoResult].[dbo].[AnalyzerResults](Analyzer_Id,HistoryNumber'  # начало строки INSERT
     str_tail = f')Values({const.analyser_id},{record.history_number}'  # хвост строки INSERT
@@ -125,13 +123,17 @@ def transfer():
         s_an += f"\n{str(an)}"   # полученные результы (для логов - все вместе, в разных строках)
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
-        if nom > cnt_max:
-            logger.warning(f"Анализов больше максимального (max={cnt_max}).")
-            nom = cnt_max
+        if nom > const.Max_Cnt_Param:  # cnt_max: (ограничение кол-ва полей в LabAutoResult - было 22)
+            logger.warning(f"Количество нализов больше максимального (max={const.Max_Cnt_Param}).")
+            nom = const.Max_Cnt_Param
             break
+        an_name = an[1]  # название анализа
+        if len(an_name) > const.Max_Lenght_Analyze_Name:
+            logger.warning(f"Длинное название {nom}-го анализа: {an_name}. (max={const.Max_Lenght_Analyze_Name}).")
+            an_name = ''.join([an_name[0:const.Max_Lenght_Analyze_Name-5], '<cut>'])  # припишем призак обрезания :))
 
         str_parm_names += ''.join([f', ParamName{nom}, ParamValue{nom}, ParamMsr{nom}, Attention{nom} '])
-        str_tail += ''.join([f", '{an[1]}', '{an[2]}', '{an[3]}', '{an[4]}' "])
+        str_tail += ''.join([f", '{an_name}', '{an[2]}', '{an[3]}', '{an[4]}' "])
         result_date = an[5]  # '2020-12-31 23:59:59' # дату-время выполнения берём из последнего анализа.
     logger.info(s_an)
     str_parm_names += ''.join([', CntParam, ResultDate, ResultText'])
@@ -154,7 +156,7 @@ def mainloop() -> None:
 
     :return: None
     """
-    while True:
+    while 1:
         record.__init__()  # при получении данных - "обнулить" всё
         data_obtained = create_socket()
         logger.debug(f"Получено байт: {len(data_obtained)}.\n{data_obtained}")
@@ -168,19 +170,20 @@ def log_alive():
 
     :return: None
     """
-    while True:
+    while 1:
         write_log(f"id: {const.analyser_id}.", FN_ALIVE, f_mode="w")  # перезаписывать!
         time.sleep(60)  # 60 сек
 
 
 if __name__ == '__main__':
-    # Проверка наличия конфигурацилнных файлов
+    # Проверка наличия конфигурационных файлов
     if not os.path.isfile(FN_LOGGING_INI):
         write_log(f"; CRITICAL; Не найден ini-файл логирования: {FN_LOGGING_INI}. Завершение работы.", FN_LOG)
         sys.exit(1)  # sys.exit(1)  exit(2) os._exit(3) quit(4) raise SystemExit(5)
 
+    name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
     logging.config.fileConfig(FN_LOGGING_INI)
-    logger = logging.getLogger()
+    logger = logging.getLogger(name)
 
     if not os.path.isfile(FN_INI):
         logger.fatal(f"Не найден конфигурационный ini-файл: {FN_INI}. Завершение работы.")
@@ -191,8 +194,9 @@ if __name__ == '__main__':
                 f'IP:{const.host}:{const.port}.')
 
     th = Thread(target=log_alive, name=FN_ALIVE, daemon=True)
-    # Процесс - демон, чтобы выйти из основного при повторном запуске по sys.exit(901).
+    # Процесс - демон, чтобы можно было выйти из основного при повторном запуске по sys.exit(901).
     # This thread dies when main thread exits.
     th.start()
     mainloop()
-    print("--- Exit from __main__.")
+    print("--- Exit from __main__.")  # Сюда не доходим :) Только снятие процесса.
+    sys.exit(911)

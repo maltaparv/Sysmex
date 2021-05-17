@@ -44,7 +44,7 @@ def write_errlog(message, o_err) -> None:
         f.write(f'{prefix_message}\n')
         f.write(o_err)
         f.write('\n')
-        if const.mode.find('SCR') > -1:
+        if "SCR" in const.mode:
             print(prefix_message)
             print(o_err)
 
@@ -66,17 +66,15 @@ def read_ini(ini_file):
     const.analyser_location = config['Connection']['analyser_location']  # .encode('cp1251').decode('utf8')
     const.host = config['Connection']['host']
     const.port = int(config['Connection']['port'])
-    # const.sql_run = config.get('Connection', 'sql_run1')
     const.server = config.get('Connection', 'server')
     const.database = config.get('Connection', 'database')
     const.user_name = config.get('Connection', 'user_name')
     const.password = config.get('Connection', 'pwd')
     const.sql_run = ''.join(['DRIVER={ODBC Driver 17 for SQL Server};SERVER=', const.server,
                              ';DATABASE=', const.database, ';UID=', const.user_name, ';PWD=', const.password])
-    # const.path_log = config.get('LogFiles', 'path_log')
-    # const.path_errlog = config.get('LogFiles', 'path_errlog')
     const.mode = config.get('Modes', 'mode')
-
+    const.Max_Cnt_Param = int(config.get('Check', 'Max_Cnt_Param'))
+    const.Max_Length_Analyze_Name = int(config.get('Check', 'Max_Length_Analyze_Name'))
     const.num_run = int(config.get('Stat', 'num_run')) + 1
     config.set('Stat', 'num_run', str(const.num_run))
     const.last_run = str(datetime.datetime.now())

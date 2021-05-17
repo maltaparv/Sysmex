@@ -49,6 +49,8 @@ class CONST:
         self.path_log = '.'  # путь к логам
         self.path_errlog = '.'  # путь к логам ошибок и файлу-контролю процесса (периодически пишется текущее время)
         self.mode = 'test_mode'
+        self.Max_Cnt_Param = 30  # ограничение кол-ва полей в [LabAutoResult].[dbo].[AnalyzerResults] - было 22
+        self.Max_Lenght_Analyze_Name = 16  # ограничение на длину названия анализа
         self.num_run = 123
         self.last_run = 'today:))'
 
