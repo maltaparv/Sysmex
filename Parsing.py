@@ -7,6 +7,16 @@ import decimal
 logger = logging.getLogger()
 
 
+def parse_order_record(line):
+    logger.debug(f"Order Record: {line}")
+    # comming line = "O|1||^^                    58^M|^^^^WBC\^^^^RBC\^^^^HGB\^^^^..."
+    field = line.decode('cp1251').split('|')
+    idn = field[3].split('^')
+    record.sample_id_no = idn[2].strip()
+    logger.debug(f"Sample ID No: {record.sample_id_no}")
+    return None
+
+
 def parse_patient_record(line):
     """парсинг строки пациента. Получаем номер истории, ФИО, и (если будет нужно) название отделения.
 
@@ -45,8 +55,12 @@ def parse_result_record(line):
         return
     an_no = int(record_field[1])
     an_name = record_field[2].replace('^', ' ').strip()
+
     if an_no <= 28:
         an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters: "^^^^WBC^1" -> "^^^^WBC"
+    else:
+        if an_name[:5] != "SCAT_" or an_name[:5] != "DIST_":  # это ссылка на рисунки .PNG - их пропускаем.
+            record.diagnosis += "".join([an_name, "#"])  # заполнияем строку предполагаемых диагнозов.
 
     an_res = record_field[3]
     if an_name == 'HGB' or an_name == 'MCHC':
@@ -106,6 +120,10 @@ def parse_xn350(data):
             parse_patient_record(line)
         elif record_id == 'R':
             parse_result_record(line)
+        elif record_id == 'O':
+            parse_order_record(line)
+        elif record_id == 'C':
+            pass
         # logger.debug(f"Record type: {record_type}. {line}")
     return None
 
@@ -149,3 +167,14 @@ Message Terminator Record  L          0     Indicates the end of the message
         an_res = str(an_res).replace('.0', ' ').strip()
 
     print("an_name = " + an_name + ", an_res = " + an_res + ".")
+    line = "O|1||^^                    58^M|^^^^WBC\^^^^RBC\^^^^HGB\^^^^..."
+    field = line.split('|')
+    print(field)
+    print(field[3])
+    idn = field[3].split('^')
+    print(idn[2].strip())
+
+    an_name = "SCAT_hgjhgjh"
+    if an_name[:5] == "SCAT_":
+        print("yes!", an_name[:5])
+

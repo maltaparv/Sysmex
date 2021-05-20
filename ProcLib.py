@@ -25,8 +25,6 @@ def write_log(message, log_file='Log', f_mode='a') -> None:
         time_stamp = now.strftime("%Y-%m-%d %H:%M:%S")
         prefix_message = f'{time_stamp} {message}'
         f.write(f'{prefix_message}\n')
-        # if const.mode.find('SCR') > -1 and f_mode != 'w':
-        #     print(prefix_message, sep=' ')  # and always print to screen
 
 
 def write_errlog(message, o_err) -> None:
@@ -44,9 +42,6 @@ def write_errlog(message, o_err) -> None:
         f.write(f'{prefix_message}\n')
         f.write(o_err)
         f.write('\n')
-        # if "SCR" in const.mode:
-        #     print(prefix_message)
-        #     print(o_err)
 
 
 def read_ini(ini_file):

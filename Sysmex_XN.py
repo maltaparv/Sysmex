@@ -123,14 +123,14 @@ def transfer():
         s_an += f"\n{str(an)}"   # полученные результы (для логов - все вместе, в разных строках)
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
-        if nom > const.Max_Cnt_Param:  # cnt_max: (ограничение кол-ва полей в LabAutoResult - было 22)
-            logger.warning(f"Количество нализов больше максимального (max={const.Max_Cnt_Param}).")
-            nom = const.Max_Cnt_Param
+        if nom > const.max_cnt_param:  # cnt_max: (ограничение кол-ва полей в LabAutoResult - было 22)
+            logger.warning(f"Количество нализов больше максимального (max={const.max_cnt_param}).")
+            nom = const.max_cnt_param
             break
         an_name = an[1]  # название анализа
-        if len(an_name) > const.Max_Lenght_Analyze_Name:
-            logger.warning(f"Длинное название {nom}-го анализа: {an_name}. (max={const.Max_Lenght_Analyze_Name}).")
-            an_name = ''.join([an_name[0:const.Max_Lenght_Analyze_Name-5], '<cut>'])  # припишем призак обрезания :))
+        if len(an_name) > const.max_length_analyze_name:
+            logger.warning(f"Длинное название {nom}-го анализа: {an_name}. (max={const.max_length_analyze_name}).")
+            an_name = ''.join([an_name[0:const.max_length_analyze_name-5], '<cut>'])  # припишем призак обрезания :))
 
         str_parm_names += ''.join([f', ParamName{nom}, ParamValue{nom}, ParamMsr{nom}, Attention{nom} '])
         str_tail += ''.join([f", '{an_name}', '{an[2]}', '{an[3]}', '{an[4]}' "])
@@ -142,6 +142,7 @@ def transfer():
 
     str_insert = ''.join([str_start, str_parm_names, str_tail, ')'])
     return_code_sql = sql_insert(str_insert)
+    logger.debug(f"diadnosis: {record.diagnosis}")
     logger.debug(f"Код возврата после записи SQL={return_code_sql}.")
 
     # TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.
