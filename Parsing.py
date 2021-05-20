@@ -59,7 +59,7 @@ def parse_result_record(line):
         an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters: "^^^^WBC^1" -> "^^^^WBC"
     else:
         if an_name[:5] != "SCAT_" and an_name[:5] != "DIST_":  # это ссылка на рисунки .PNG - их пропускаем.
-            record.diagnosis += "".join([an_name, "#"])  # заполнияем строку предполагаемых диагнозов.
+            record.diagnosis += "".join([an_name, "#"])  # заполняем строку предполагаемых диагнозов.
 
     an_res = record_field[3]
     if an_name == 'HGB' or an_name == 'MCHC':
