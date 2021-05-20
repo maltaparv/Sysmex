@@ -109,22 +109,20 @@ def transfer():
     :return: None
     """
     logger.info(f"Номер истории={record.history_number}, ФИО={record.fio}")
-    # print(f"--- tеst Hist num={record.history_number}, ФИО={record.fio}")
     # cnt_max = 28  # (ограничение кол-ва полей в LabAutoResult - было 22)
     result_text = record.result_text  # 'тест7 Sysmex XN-350 '
-    str_start = 'INSERT INTO [LabAutoResult].[dbo].[AnalyzerResults](Analyzer_Id,HistoryNumber'  # начало строки INSERT
-    str_tail = f')Values({const.analyser_id},{record.history_number}'  # хвост строки INSERT
+    str_start = 'INSERT INTO [LabAutoResult].[dbo].[AnalyzerResults](Analyzer_Id,HistoryNumber,Comment1'  # INSERT
+    str_tail = f')Values({const.analyser_id},{record.history_number},{record.sample_id_no}'  # хвост строки INSERT
     str_parm_names = ''
     result_date = '2020-12-31 23:59:57'
     s_an = 'Полученные анализы:'  # полученные результы (для логов - все вместе, в разных строках)
     nom = 0  # кол-во параметров (CntParam в SQL)
     for an in record.list_research:
-        # logger.info(f"Получено: {str(an)}")
         s_an += f"\n{str(an)}"   # полученные результы (для логов - все вместе, в разных строках)
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
         if nom > const.max_cnt_param:  # cnt_max: (ограничение кол-ва полей в LabAutoResult - было 22)
-            logger.warning(f"Количество нализов больше максимального (max={const.max_cnt_param}).")
+            logger.warning(f"Количество анализов больше максимального (max={const.max_cnt_param}).")
             nom = const.max_cnt_param
             break
         an_name = an[1]  # название анализа
@@ -136,13 +134,13 @@ def transfer():
         str_tail += ''.join([f", '{an_name}', '{an[2]}', '{an[3]}', '{an[4]}' "])
         result_date = an[5]  # '2020-12-31 23:59:59' # дату-время выполнения берём из последнего анализа.
     logger.info(s_an)
-    str_parm_names += ''.join([', CntParam, ResultDate, ResultText'])
-    str_tail += ''.join([f", {nom}, '{result_date}', '{result_text}'"])
+    str_parm_names += ''.join([', CntParam, ResultDate, Comment2, ResultText'])
+    str_tail += ''.join([f", {nom}, '{result_date}', '{record.diagnosis}', '{result_text}'"])
     # str_tail += ''.join([f", GetDate(), '{result_text}'"])  # для второго варианта  - по времени добавления в SQL.
 
     str_insert = ''.join([str_start, str_parm_names, str_tail, ')'])
     return_code_sql = sql_insert(str_insert)
-    logger.debug(f"diadnosis: {record.diagnosis}")
+    logger.debug(f"diagnosis: {record.diagnosis}")
     logger.debug(f"Код возврата после записи SQL={return_code_sql}.")
 
     # TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.

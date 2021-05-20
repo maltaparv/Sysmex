@@ -8,12 +8,11 @@ logger = logging.getLogger()
 
 
 def parse_order_record(line):
-    logger.debug(f"Order Record: {line}")
-    # comming line = "O|1||^^                    58^M|^^^^WBC\^^^^RBC\^^^^HGB\^^^^..."
+    # comming line = "O|1||^^                    58^M|^^^^WBC\^^^^RBC\^^^^HGB\^^^^..." - sample_id_no="58"
     field = line.decode('cp1251').split('|')
     idn = field[3].split('^')
     record.sample_id_no = idn[2].strip()
-    logger.debug(f"Sample ID No: {record.sample_id_no}")
+    logger.info(f"Sample ID No: {record.sample_id_no}")
     return None
 
 
@@ -59,7 +58,7 @@ def parse_result_record(line):
     if an_no <= 28:
         an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters: "^^^^WBC^1" -> "^^^^WBC"
     else:
-        if an_name[:5] != "SCAT_" or an_name[:5] != "DIST_":  # это ссылка на рисунки .PNG - их пропускаем.
+        if an_name[:5] != "SCAT_" and an_name[:5] != "DIST_":  # это ссылка на рисунки .PNG - их пропускаем.
             record.diagnosis += "".join([an_name, "#"])  # заполнияем строку предполагаемых диагнозов.
 
     an_res = record_field[3]
