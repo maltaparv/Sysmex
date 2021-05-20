@@ -2,6 +2,7 @@
 from ClassLib import RECORD
 from datetime import datetime
 import logging.config
+import decimal
 
 logger = logging.getLogger()
 
@@ -44,29 +45,32 @@ def parse_result_record(line):
         return
     an_no = int(record_field[1])
     an_name = record_field[2].replace('^', ' ').strip()
-    # an_name = name_an(an_no, an_name)
     if an_no <= 28:
         an_name = an_name[:-2]  # Analysis Parameter ID without last 2 characters: "^^^^WBC^1" -> "^^^^WBC"
+
     an_res = record_field[3]
+    if an_name == 'HGB' or an_name == 'MCHC':
+        an_res = an_res.replace(',', '.')
+        an_res = decimal.Decimal(an_res) * 10
+        an_res = str(an_res).replace('.0', ' ').strip()
+
     an_ed = record_field[4]
     an_flag = record_field[6]
     date_string = record_field[12]  # 20200908110303
     # TODO_done 2020-10-06_08 (для SQL формат такой: “2019-12-31 23:52:42.423”)
     date_object = datetime.strptime(date_string, "%Y%m%d%H%M%S")  # "20201008235159"
     an_time = date_object.strftime('%Y-%m-%d %H:%M:%S')  # для MS SQL формат такой: “2019-12-31 23:52:49.123”
-    # print(an_no, an_name, an_res, an_ed, an_flag, an_time, sep=';')
     record.an = [an_no, an_name, an_res, an_ed, an_flag, an_time]  # current record with one result
     record.list_research.append(record.an)  # Add to patient's list of analysis the current result
     # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an
     num = int(record_field[1])  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
     record.dict_rec[f'number{num}'] = num
-    # record.dict_rec[f'ParamName{num}'] = name_an(num, record_field[2].replace('^', ' ').strip())
     record.dict_rec[f'ParamName{num}'] = an_name
-    record.dict_rec[f'ParamValue{num}'] = record_field[3]
-    record.dict_rec[f'ParamMsr{num}'] = record_field[4]
-    record.dict_rec[f'flag{num}'] = record_field[6]
+    record.dict_rec[f'ParamValue{num}'] = an_res  # record_field[3]
+    record.dict_rec[f'ParamMsr{num}'] = an_ed  # record_field[4]
+    record.dict_rec[f'flag{num}'] = an_flag  # record_field[6]
     # TODO_2020-10-06_08 (для MS SQL формат такой: “2019-12-31 23:52:49.123”)
-    date_object = datetime.strptime(record_field[12], "%Y%m%d%H%M%S")  # "20201008235159"
+    date_object = datetime.strptime(date_string, "%Y%m%d%H%M%S")  # "20201008235159"
     record.dict_rec[f'date_time{num}'] = date_object.strftime('%Y-%m-%d %H:%M:%S')
     # for num in [2, 5, 7, 8, 9, 10, 11]:
     #     record.dict_rec[f"field{num}"] = record_field[num]  # для полей с неизвестной семантикой - пусть пока будут.
@@ -74,7 +78,7 @@ def parse_result_record(line):
 
 
 def parse_xn350(data):
-    """ Parsing data for Sysmex XN-350
+    """ Parsing data for Sysmex XN-350 and Sysmex XN-550
 
     :param data:
     :return:
@@ -133,3 +137,15 @@ Message Terminator Record  L          0     Indicates the end of the message
     tt = lambda s, n: s[:-2] if n <= 28 else s
     print(f"num={number}, lambda={tt(ss, 28)}")
     print((lambda s, n: s[:-2] if n <= 28 else s)(ss, 28))
+
+    an_name = 'HGB'
+    an_res = '14,6'
+    an_name = 'MCHC'
+    an_res = '29,4'
+
+    if an_name == 'HGB' or an_name == 'MCHC':
+        an_res = an_res.replace(',', '.')
+        an_res = decimal.Decimal(an_res) * 10
+        an_res = str(an_res).replace('.0', ' ').strip()
+
+    print("an_name = " + an_name + ", an_res = " + an_res + ".")
