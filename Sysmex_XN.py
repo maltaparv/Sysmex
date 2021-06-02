@@ -141,7 +141,7 @@ def transfer():
     str_insert = ''.join([str_start, str_parm_names, str_tail, ')'])
     return_code_sql = sql_insert(str_insert)
     logger.debug(f"diagnosis: {record.diagnosis}")
-    logger.debug(f"Код возврата после записи SQL={return_code_sql}.")
+    logger.info(f"Код возврата после записи SQL={return_code_sql}.")
 
     # TODO в ResultText добавлять: ФИО и все подсказки-диагнозы для врача, т.к. пока ещё неизвестно, куда их добавлять.
     # примеры: Anemia, Atypical_Lympho?, Iron_Deficiency?, - а надо ли всё это перевести на русский???
