@@ -8,7 +8,7 @@ class RECORD:
     def __init__(self):  # Конструктор
         self.fio = '*** это тестовый пример! ***'
         self.history_number = 99998  # 99998 for testing.
-        self.sample_id_no = "test number 0 :))"  # Sample ID No in Test Order Record.
+        self.sample_id_no = "123456789"  # Sample ID No in Test Order Record.
         self.result_total = "All  Positive :))"  # Общая интерпретация результата, что печатается вверху на бланке.
         self.diagnosis = ""  # строка предполагаемых диагнозов по результатам анализов из БД анализатора.
         self.list_research = []
