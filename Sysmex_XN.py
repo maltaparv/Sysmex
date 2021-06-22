@@ -38,7 +38,8 @@ def create_socket():
         pass
 
     s.listen(1)  # the value may help by setting the maximum length of the queue for pending connections.
-    logger.info(f"Ожидание соединения... {const.analyser_name}, id={const.analyser_id}, IP:{const.host}:{const.port}.")
+    logger.info(f"Ожидание соединения... {const.analyser_name}, id={const.analyser_id}, "
+                f"IP:{const.host}:{const.port}, PID:{const.pid}.")
     conn, addr = s.accept()
     logger.info(f"Соединенились с анализатором: {conn} {addr}.")
     no_data = b'--- NO DATA! It is fake :)'  # чтобы не было ошибки 2020-10-19
@@ -118,7 +119,7 @@ def transfer():
     s_an = 'Полученные анализы:'  # полученные результы (для логов - все вместе, в разных строках)
     nom = 0  # кол-во параметров (CntParam в SQL)
     for an in record.list_research:
-        s_an += f"\n{str(an)}"   # полученные результы (для логов - все вместе, в разных строках)
+        s_an += f"\n{str(an)}"   # полученные результаты (для логов - все вместе, в разных строках)
         nom = an[0]  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
         # TODO_ проверка на превышение максимального количества анализов (ограничение кол-ва полей в LabAutoResult)
         if nom > const.max_cnt_param:  # cnt_max: (ограничение кол-ва полей в LabAutoResult - было 22)
@@ -189,8 +190,9 @@ if __name__ == '__main__':
         sys.exit(2)
 
     read_ini(FN_INI)
+    const.pid = os.getpid()
     logger.info(f'Запуск {const.analyser_name}, id={const.analyser_id}, {const.analyser_location}, '
-                f'IP:{const.host}:{const.port}.')
+                f'IP:{const.host}:{const.port}, PID:{const.pid}.')
 
     th = Thread(target=log_alive, name=FN_ALIVE, daemon=True)
     # Процесс - демон, чтобы можно было выйти из основного при повторном запуске по sys.exit(901).
