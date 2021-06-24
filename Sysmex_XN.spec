@@ -30,4 +30,4 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False , icon='Sysmex350.ico')
+          console=False , icon='Sysmex550.ico')
