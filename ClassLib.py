@@ -49,10 +49,10 @@ class CONST:
         # self.path_log = '.'  # путь к логам
         # self.path_errlog = '.'  # путь к логам ошибок и файлу-контролю процесса (периодически пишется текущее время).
         self.mode = 'test_mode'
-        self.max_cnt_param = 30  # ограничение кол-ва полей в [LabAutoResult].[dbo].[AnalyzerResults] - было 22/
-        self.max_length_analyze_name = 16  # ограничение на длину названия анализа/
+        self.max_cnt_param = 30  # ограничение кол-ва полей в [LabAutoResult].[dbo].[AnalyzerResults] - было 22.
+        self.max_length_analyze_name = 16  # ограничение на длину названия анализа.
         self.num_run = 123
-        self.pid = 999999  # pirocess id.
+        self.pid = 999999  # process id.
 
 
 const = CONST()

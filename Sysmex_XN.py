@@ -41,7 +41,7 @@ def create_socket():
     logger.info(f"Ожидание соединения... {const.analyser_name}, id={const.analyser_id}, "
                 f"IP:{const.host}:{const.port}, PID:{const.pid}.")
     conn, addr = s.accept()
-    logger.info(f"Соединенились с анализатором: {conn} {addr}.")
+    logger.info(f"Соединились с анализатором: {conn} {addr}.")
     no_data = b'--- NO DATA! It is fake :)'  # чтобы не было ошибки 2020-10-19.
     data_received = b''
     rec_eot = b'L|1|N\r'  # Message Terminator Record 'L' - Indicates the end of the message.

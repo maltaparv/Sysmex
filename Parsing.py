@@ -63,26 +63,29 @@ def parse_result_record(line):
 
     an_res = record_field[3]
     if an_name == 'HGB' or an_name == 'MCHC':
+        print(an_name, an_res)
         an_res = an_res.replace(',', '.')
+        #print(record_field)
+        if an_res == '----':  # мало крови
+            an_res = 0
+        ## была ошибка:  decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
         an_res = decimal.Decimal(an_res) * 10
         an_res = str(an_res).replace('.0', ' ').strip()
 
     an_ed = record_field[4]
     an_flag = record_field[6]
     date_string = record_field[12]  # 20200908110303
-    # TODO_done 2020-10-06_08 (для SQL формат такой: “2019-12-31 23:52:42.423”)
     date_object = datetime.strptime(date_string, "%Y%m%d%H%M%S")  # "20201008235159"
     an_time = date_object.strftime('%Y-%m-%d %H:%M:%S')  # для MS SQL формат такой: “2019-12-31 23:52:49.123”
-    record.an = [an_no, an_name, an_res, an_ed, an_flag, an_time]  # current record with one result
-    record.list_research.append(record.an)  # Add to patient's list of analysis the current result
-    # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an
+    record.an = [an_no, an_name, an_res, an_ed, an_flag, an_time]  # current record with one result.
+    record.list_research.append(record.an)  # Add to patient's list of analysis the current result.
+    # ToDo_done 2020-10-09 Сделать словарь для одной записи вместо списка record.list_an.
     num = int(record_field[1])  # берём номер исследоваия, который выдал анализатор, а не считаем сами!
     record.dict_rec[f'number{num}'] = num
     record.dict_rec[f'ParamName{num}'] = an_name
     record.dict_rec[f'ParamValue{num}'] = an_res  # record_field[3]
     record.dict_rec[f'ParamMsr{num}'] = an_ed  # record_field[4]
     record.dict_rec[f'flag{num}'] = an_flag  # record_field[6]
-    # TODO_2020-10-06_08 (для MS SQL формат такой: “2019-12-31 23:52:49.123”)
     date_object = datetime.strptime(date_string, "%Y%m%d%H%M%S")  # "20201008235159"
     record.dict_rec[f'date_time{num}'] = date_object.strftime('%Y-%m-%d %H:%M:%S')
     # for num in [2, 5, 7, 8, 9, 10, 11]:
@@ -102,7 +105,7 @@ def parse_xn350(data):
     # Records types according to "Automated Hematology Analyzer XN-L series.
     # ASTM Host Interface Specifications", page 14.
     # A record is a series of text, beginning with an ASCII alphabetic character called the identifier
-    # and ending with [CR]
+    # and ending with [CR].
     dict_record_name = {'H': 'Header Record',
                         'P': 'Patient Info Record',
                         'Q': 'Inquiry Record',
@@ -127,7 +130,7 @@ def parse_xn350(data):
     return None
 
 
-record = RECORD()  # to fill from all where it needs :))
+record = RECORD()  # to fill from all where it needs :).
 
 if __name__ == '__main__':
     msg = f'Parsing - Run from {__name__}.'
@@ -156,7 +159,7 @@ Message Terminator Record  L          0     Indicates the end of the message
     print((lambda s, n: s[:-2] if n <= 28 else s)(ss, 28))
 
     an_name = 'HGB'
-    an_res = '14,6'
+    an_res = ''  ## '14,6'  #
     an_name = 'MCHC'
     an_res = '29,4'
 
@@ -166,14 +169,5 @@ Message Terminator Record  L          0     Indicates the end of the message
         an_res = str(an_res).replace('.0', ' ').strip()
 
     print("an_name = " + an_name + ", an_res = " + an_res + ".")
-    line = "O|1||^^                    58^M|^^^^WBC\^^^^RBC\^^^^HGB\^^^^..."
-    field = line.split('|')
-    print(field)
-    print(field[3])
-    idn = field[3].split('^')
-    print(idn[2].strip())
 
-    an_name = "SCAT_hgjhgjh"
-    if an_name[:5] == "SCAT_":
-        print("yes!", an_name[:5])
 

@@ -31,7 +31,6 @@ def write_errlog(message, o_err) -> None:
     """Log all data and current date-time stamp to special file """
     # write_log(message: str) -> None:    write_log(*message) -> None:
     now = datetime.datetime.now()
-    # TODO_done 10-12 all constants must be in separate class (2020-10-03)
     filename = f'{const.path_errlog}\\ErrLog.txt'
     # r'D:\TempData\Log.txt' r"D:\_KDL_\Sysmex XN-350\Data_Sysmex\LogSysmex.txt" "LogSysmex.txt"
     with open(filename, 'a') as f:
