@@ -63,14 +63,12 @@ def parse_result_record(line):
 
     an_res = record_field[3]
     if an_name == 'HGB' or an_name == 'MCHC':
-        print(an_name, an_res)
         an_res = an_res.replace(',', '.')
         #print(record_field)
-        if an_res == '----':  # мало крови
-            an_res = 0
-        ## была ошибка:  decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
-        an_res = decimal.Decimal(an_res) * 10
-        an_res = str(an_res).replace('.0', ' ').strip()
+        if an_res != '----':  # мало крови
+            ## была ошибка:  decimal.InvalidOperation: [<class 'decimal.ConversionSyntax'>]
+            an_res = decimal.Decimal(an_res) * 10
+            an_res = str(an_res).replace('.0', ' ').strip()
 
     an_ed = record_field[4]
     an_flag = record_field[6]
@@ -100,11 +98,11 @@ def parse_xn350(data):
     :return:
     """
     logger.debug("Парсинг...")
-    record.result_text = data.decode('cp1251')  # это весь полученный текст для записи в SQL
+    record.result_text = data.decode('cp1251')  # это весь полученный текст для записи в SQL.
     dl = data.splitlines()
     # Records types according to "Automated Hematology Analyzer XN-L series.
     # ASTM Host Interface Specifications", page 14.
-    # A record is a series of text, beginning with an ASCII alphabetic character called the identifier
+    # A record is a series of text, beginning with an ASCII alphabetic character called the identifier.
     # and ending with [CR].
     dict_record_name = {'H': 'Header Record',
                         'P': 'Patient Info Record',
